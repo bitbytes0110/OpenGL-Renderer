@@ -70,8 +70,8 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>C:\Users\Anand\Documents\OpenGL\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\Anand\Documents\OpenGL\Libraries;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Git\OpenGL-Renderer\HelloGL\Inc;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Git\OpenGL-Renderer\HelloGL\Lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
