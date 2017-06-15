@@ -18,9 +18,10 @@ const char *vertexShaderSource = "#version 330 core\n"
 
 const char *fragmentShaderSource = "#version 330 core\n"
 "out vec4 FragColor;\n"
+"uniform vec3 vertexColor;\n"
 "void main()\n"
 "{\n"
-"	FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+"	FragColor = vec4(vertexColor, 1.0f);\n"
 "}\n\0";
 
 // End of GLSL
@@ -164,13 +165,17 @@ int main()
 		glClearColor(0.2f,0.3f, 0.5f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
+		float timeValue = glfwGetTime();
+		float redValue = (sin(timeValue) / 2) + 0.5f;
+		int vertexColorLocation = glGetUniformLocation(shaderProgram, "vertexColor");
 		glUseProgram(shaderProgram);
+		glUniform3f(vertexColorLocation, redValue, 0.0f, 0.0f);
 		glBindVertexArray(VAO);
 
 
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);	//	Enables Wireframe mode
+		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);	//	Enables Wireframe mode
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);	//	Disables Wireframe mode
 
-		//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);	//	Disables Wireframe mode
 		//glDrawArrays(GL_TRIANGLES, 0, 3);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
