@@ -11,14 +11,18 @@
 //	GLSL
 const char *vertexShaderSource = "#version 330 core\n"
 "layout(location = 0) in vec3 aPos;\n"
+"layout(location = 1) in vec3 aCol;\n"
+"out vec3 vertexColor;"
+
 "void main()\n"
 "{\n"
-"	gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0f);\n"
+"	gl_Position = vec4(aPos, 1.0f);\n"
+"	vertexColor = aCol;"
 "}\n\0";
 
 const char *fragmentShaderSource = "#version 330 core\n"
 "out vec4 FragColor;\n"
-"uniform vec3 vertexColor;\n"
+"in vec3 vertexColor;\n"
 "void main()\n"
 "{\n"
 "	FragColor = vec4(vertexColor, 1.0f);\n"
@@ -65,14 +69,12 @@ int main()
 
 
 	float vertices[] = {
-		0.5f,  0.5f, 0.0f,  // top right
-		0.5f, -0.5f, 0.0f,  // bottom right
-		-0.5f, -0.5f, 0.0f,  // bottom left
-		-0.5f,  0.5f, 0.0f   // top left 
+		0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
+		-0.5f, -0.5f, 0.0f,0.0f, 1.0f, 0.0f,
+		0.0f,  0.5f, 0.0f, 0.0f, 0.0f, 1.0f
 	};
 	unsigned int indices[] = {  // note that we start from 0!
-		0, 1, 3,   // first triangle
-		1, 2, 3    // second triangle
+		2, 1, 0,   // first triangle
 	};
 
 
@@ -101,9 +103,11 @@ int main()
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
 	// Setting the vertex attributes (how the vertex data should be interpreted)
-	glVertexAttribPointer(0,3, GL_FLOAT,GL_FALSE,3*(sizeof(GL_FLOAT)),(void*)0);
+	glVertexAttribPointer(0,3, GL_FLOAT,GL_FALSE,6*(sizeof(GL_FLOAT)),(void*)0);
 	glEnableVertexAttribArray(0);
 
+	glVertexAttribPointer(1,3, GL_FLOAT, GL_FALSE, 6*(sizeof(GL_FLOAT)),(void*)(3*sizeof(float)) );
+	glEnableVertexAttribArray(1);
 
 	//	Vertex Shader
 	unsigned int vertexShader;
@@ -165,11 +169,12 @@ int main()
 		glClearColor(0.2f,0.3f, 0.5f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		float timeValue = glfwGetTime();
+		/*float timeValue = glfwGetTime();
 		float redValue = (sin(timeValue) / 2) + 0.5f;
 		int vertexColorLocation = glGetUniformLocation(shaderProgram, "vertexColor");
+		*/
 		glUseProgram(shaderProgram);
-		glUniform3f(vertexColorLocation, redValue, 0.0f, 0.0f);
+		//glUniform3f(vertexColorLocation, redValue, 0.0f, 0.0f);
 		glBindVertexArray(VAO);
 
 
@@ -177,7 +182,7 @@ int main()
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);	//	Disables Wireframe mode
 
 		//glDrawArrays(GL_TRIANGLES, 0, 3);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
 
 		glBindVertexArray(0);
 
