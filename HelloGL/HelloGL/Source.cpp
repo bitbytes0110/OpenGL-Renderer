@@ -1,209 +1,152 @@
 #include<glad\glad.h>
 #include<GLFW\glfw3.h>
 
+#include"Macros.h"
+#include"Shader.h"
 #include<iostream>
 
-#define WIDTH	1280
-#define HEIGHT  720
-
-#define DEBUG(printString) std::cout<< printString<< std::endl;
-
-//	GLSL
-const char *vertexShaderSource = "#version 330 core\n"
-"layout(location = 0) in vec3 aPos;\n"
-"layout(location = 1) in vec3 aCol;\n"
-"out vec3 vertexColor;"
-
-"void main()\n"
-"{\n"
-"	gl_Position = vec4(aPos, 1.0f);\n"
-"	vertexColor = aCol;"
-"}\n\0";
-
-const char *fragmentShaderSource = "#version 330 core\n"
-"out vec4 FragColor;\n"
-"in vec3 vertexColor;\n"
-"void main()\n"
-"{\n"
-"	FragColor = vec4(vertexColor, 1.0f);\n"
-"}\n\0";
-
-// End of GLSL
-
-
+void SetWireframe(bool bValue);
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-
+void SetWireframe(bool bValue);
 void processInput(GLFWwindow * window);
 
 int main()
 {
+	// glfw: initialize and configure
+	// ------------------------------
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR,3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR,3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
+	// glfw window creation
+	// --------------------
 	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "RockGL", NULL, NULL);
 	if(window == NULL)
 	{
-		DEBUG("GLFW3 Window Inititalization Failed");
+		DEBUG("GLFW3 Window Inititalization FAILED");
 		glfwTerminate();
 		return -1;
 	}
 	else
 	{
-		DEBUG("GLFW3 Window Inititalization SUCCESS !");
+		DEBUG("GLFW3 Window Inititalization SUCCESS!");
 	}
 	glfwMakeContextCurrent(window);
+	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-
+	// glad: load all OpenGL function pointers
+	// ---------------------------------------
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
 		DEBUG("GLAD loading failed");
 		return -1;
 	}
-	glViewport(0,0, WIDTH, HEIGHT);
 
+	// build and compile our shader program
+	// ------------------------------------
+	Shader ourShaderProgram("shader.VS", "shader.FS");
 
-	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-
-
+	// set up vertex data (and buffer(s)) and configure vertex attributes
+	// ------------------------------------------------------------------
 	float vertices[] = {
-		0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
-		-0.5f, -0.5f, 0.0f,0.0f, 1.0f, 0.0f,
-		0.0f,  0.5f, 0.0f, 0.0f, 0.0f, 1.0f
-	};
-	unsigned int indices[] = {  // note that we start from 0!
-		2, 1, 0,   // first triangle
+		// positions         // colors
+		0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,  // bottom right
+		-0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,  // bottom left
+		0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f   // top 
 	};
 
 
 	//	Vertex Buffer Object		( Stores all vertex data )
-	unsigned int VBO;
+	unsigned int VBO, VAO;
+	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
 
-	//	Vertex Array Object			( Stores all the vertex object attributes and also links all the  VBOs and EBOs )
-	unsigned int VAO;
-	glGenVertexArrays(1, &VAO);
-
-	//	Elementary Buffer object	( Stores all indices )
-	unsigned int EBO;
-	glGenBuffers(1, &EBO);
-
-
-
-
+	// bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
 	glBindVertexArray(VAO);
-
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
 	// Setting the vertex attributes (how the vertex data should be interpreted)
+	// position attribute
 	glVertexAttribPointer(0,3, GL_FLOAT,GL_FALSE,6*(sizeof(GL_FLOAT)),(void*)0);
 	glEnableVertexAttribArray(0);
 
-	glVertexAttribPointer(1,3, GL_FLOAT, GL_FALSE, 6*(sizeof(GL_FLOAT)),(void*)(3*sizeof(float)) );
+	// Color attribute
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GL_FLOAT), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
-
-	//	Vertex Shader
-	unsigned int vertexShader;
-	vertexShader = glCreateShader(GL_VERTEX_SHADER);
-
-	glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-	glCompileShader(vertexShader);
-
-
-	int success;
-	char log[256];
-
-	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-
-	if (!success)
-	{
-		DEBUG("ERROr");
-
-	}
-
-	// Fragment Shader
-
 	
-	unsigned int fragmentShader;
-	fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-
-	glShaderSource(fragmentShader,1, &fragmentShaderSource, NULL );
-	glCompileShader(fragmentShader);
+	// You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens. Modifying other
+	// VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
+	// glBindVertexArray(0);
 
 
-	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-	if (!success)
+	// Game Loop
+	// ----------------
+	while (!glfwWindowShouldClose(window))	
 	{
-		glGetShaderInfoLog(fragmentShader, 512, NULL, log);
-		DEBUG(log);
-
-	}
-
-	unsigned int shaderProgram;
-	shaderProgram = glCreateProgram();
-
-	glAttachShader(shaderProgram, vertexShader);
-	glAttachShader(shaderProgram, fragmentShader);
-	glLinkProgram(shaderProgram);
-
-	
-	glBindVertexArray(0);	// Unbinds the Vertex Array object
-
-
-	glDeleteShader(vertexShader);
-	glDeleteShader(fragmentShader);
-
-	while (!glfwWindowShouldClose(window))	// Game Loop
-	{
+		// Input
+		// -----
 		processInput(window);
 
-		// Rendering code
-
+		// Render
+		// ------
 		glClearColor(0.2f,0.3f, 0.5f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		/*float timeValue = glfwGetTime();
-		float redValue = (sin(timeValue) / 2) + 0.5f;
-		int vertexColorLocation = glGetUniformLocation(shaderProgram, "vertexColor");
-		*/
-		glUseProgram(shaderProgram);
-		//glUniform3f(vertexColorLocation, redValue, 0.0f, 0.0f);
+
+		//	Render the Triangle
+
+		ourShaderProgram.Use();
 		glBindVertexArray(VAO);
-
-
-		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);	//	Enables Wireframe mode
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);	//	Disables Wireframe mode
-
-		//glDrawArrays(GL_TRIANGLES, 0, 3);
-		glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
-
-		glBindVertexArray(0);
-
+		glDrawArrays(GL_TRIANGLES, 0, 3);
+				
 		// End of Rendering Code
 
-
+		// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
+		// -------------------------------------------------------------------------------
 		glfwSwapBuffers(window);
 		glfwPollEvents();	
 	}
 
+
+	// De-allocate all resources once they've outlived their purpose:
+	// ------------------------------------------------------------------------
+	glDeleteVertexArrays(1, &VAO);
+	glDeleteBuffers(1, &VBO);
+
+	// glfw: terminate, clearing all previously allocated GLFW resources.
+	// ------------------------------------------------------------------
 	glfwTerminate();
 	return 0;
 }
 
-void framebuffer_size_callback(GLFWwindow * window, int width, int height)
+void SetWireframe(bool bWireframeMode)
 {
-	glViewport(0, 0, width, height);
+	if (bWireframeMode)
+	{
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);	//	Enable
+	}
+	else
+	{
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);	//	Disable
+	}
 }
 
+// process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
+// ---------------------------------------------------------------------------------------------------------
 void processInput(GLFWwindow* window)
 {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, TRUE);
+}
+
+// glfw: whenever the window size changed (by OS or user resize) this callback function executes
+// ---------------------------------------------------------------------------------------------
+void framebuffer_size_callback(GLFWwindow * window, int width, int height)
+{
+	// make sure the viewport matches the new window dimensions
+	glViewport(0, 0, width, height);
 }
