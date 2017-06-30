@@ -8,6 +8,10 @@
 #include<fstream>
 #include<sstream>
 
+#include<glm\glm.hpp>
+#include<glm\gtc\matrix_transform.hpp>
+#include<glm\gtc\type_ptr.hpp>
+
 using namespace std;
 
 class Shader
@@ -26,6 +30,7 @@ public:
 	void SetBool(const string &name, bool bValue);
 	void SetInt(const string &name, int iValue);
 	void SetFloat(const string &name, float fValue);
+	void SetMat4(const string &name, glm::mat4 fValue);
 	
 	~Shader();
 

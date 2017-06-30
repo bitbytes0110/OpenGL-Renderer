@@ -1,11 +1,33 @@
 #include<glad\glad.h>
 #include<GLFW\glfw3.h>
 
+#include<glm\glm.hpp>
+#include<glm\gtc\matrix_transform.hpp>
+#include<glm\gtc\type_ptr.hpp>
+
+#include<glm\glm.hpp>
+
+
 #include"stb_image.h"
 
 #include"Macros.h"
 #include"Shader.h"
 #include<iostream>
+
+int main();
+
+void ConsoleProgramming()
+{
+
+	LOG("**----->	Console Programming START	< ----- **\n");
+	glm::vec4 InitVec (1.0f, 0.0f, 0.0f, 1.0f);	     
+	glm::mat4 transMat;
+	transMat = glm::translate(transMat, glm::vec3(1.0f,1.0f,0.0f));
+	glm::vec3 finalVec = transMat*InitVec;
+	std::cout << finalVec.x << finalVec.y << finalVec.z<<std::endl;
+
+	LOG("**----->	Console Programming END		< ----- **\n");
+}
 
 void SetWireframe(bool bValue);
 
@@ -17,6 +39,8 @@ float mixValue = 0.4f;
 
 int main()
 {
+
+	ConsoleProgramming();
 	// glfw: initialize and configure
 	// ------------------------------
 	glfwInit();
@@ -170,6 +194,7 @@ int main()
 	ourShaderProgram.SetInt("FaceTexture", 1);
 
 	ourShaderProgram.SetFloat("mixValue", mixValue);
+	ourShaderProgram.SetFloat("mixValue", mixValue);
 
 
 	//SetWireframe(TRUE);
@@ -193,7 +218,13 @@ int main()
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, myTexture2);
 
+		glm::mat4 trans;
+		trans = glm::translate(trans, glm::vec3(0.5f, 0.5f, 0.0f));
+		trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
+		trans = glm::scale(trans, glm::vec3(0.5f, 0.5f, 1.0f));
+		
 		ourShaderProgram.SetFloat("mixValue", mixValue);
+		ourShaderProgram.SetMat4("transMat", trans);
 
 		//	Render Container
 		ourShaderProgram.Use();
@@ -219,6 +250,8 @@ int main()
 	glfwTerminate();
 	return 0;
 }
+
+
 
 void SetWireframe(bool bWireframeMode)
 {

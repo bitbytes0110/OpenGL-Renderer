@@ -164,6 +164,12 @@ void Shader::SetFloat(const string &name, float fValue)
 	glUniform1f(glGetUniformLocation(ShaderProgram, name.c_str()), fValue);
 }
 
+void Shader::SetMat4(const string &name, glm::mat4 m4Value)
+{
+	glUniformMatrix4fv(glGetUniformLocation(ShaderProgram, name.c_str()), 1, GL_FALSE, glm::value_ptr(m4Value));
+}
+
+
 
 Shader::~Shader()
 {
